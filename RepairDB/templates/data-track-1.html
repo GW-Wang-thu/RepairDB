@@ -1,0 +1,266 @@
+{% extends 'datasubmit_template.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post" novalidate>
+
+                    <div class="form-group" id="id-div-jtype">
+                        <label>选择机型</label>
+                        <select name="jet_type" class="form-control" id="id-select-jtype" onchange="select_change_event('jtype')">
+                          <option value="all">不限定</option>
+                          <option value="as_x">设为分析自变量</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="id-div-servearea">
+                        <label>选择服役地点</label>
+                        <select name="jet_type" class="form-control" id="id-select-serve_area" onchange="select_change_event('servearea')">
+                          <option value="all">不限定</option>
+                          <option value="as_x">设为分析自变量</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="id-div-jid">
+                        <label>选择飞机编号</label>
+                        <select class="form-control" id="id-select-jid" onchange="select_change_event('jid')">
+                          <option value="all">不限定</option>
+                          <option value="as_x">设为分析自变量</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="id-div-jcomp">
+                        <label>选择部件</label>
+                        <select class="form-control" id="id-select-jcomp" onchange="select_change_event('jcomp')">
+                          <option value="all">不限定</option>
+                          <option value="as_x">设为分析自变量</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="id-div-jpart">
+                        <label>选择零件</label>
+                        <select class="form-control" id="id-select-jpart" onchange="select_change_event('jpart')">
+                          <option value="all" >不限定</option>
+                          <option value="as_x">设为分析自变量</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="id-div-detect-time">
+                        <label>选择检测节点</label>
+                        <select class="form-control" id="id-select-detect_time" onchange="select_change_event('detect-time')">
+                          <option value="all">不限定</option>
+                          <option value="as_x">设为分析自变量</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="id-div-defect-type">
+                        <label>选择损伤类型</label>
+                        <select class="form-control" id="id-select-defect_type" onchange="select_change_event('defect-type')">
+                          <option value="all">不限定</option>
+                          <option value="as_x">设为分析自变量</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="id-div-location-type">
+                        <label>选择损伤区域类型</label>
+                        <select class="form-control" id="id-select-location_type" onchange="select_change_event('location-type')">
+                          <option value="all">不限定</option>
+                          <option value="as_x">设为分析自变量</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" id="button" onclick="select_change_event('query')">查询</button>
+                </form>
+            </div>
+
+        </div>
+
+        <div class="panel panel-default" id="id-chart-panel">
+            <div class="panel-heading">缺陷数量统计图</div>
+            <div class="panel-body" id="id-body-chart">
+                <div id="chart-1" style="width: 100%;height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{##}
+{% block js %}
+    <script src="{% static 'js/echarts.js' %}"></script>
+    <script type="text/javascript">
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+
+        var myChart;//全局变量
+
+        $(function (){
+            select_change_event('init')
+        })
+
+        function select_change_event(message) {
+            // log 一下
+            var chart_p = document.getElementById("id-chart-panel")
+            console.log(message)
+            // 初始
+            if (message === "init") {
+                chart_p.style.visibility="hidden"
+                $.ajax({
+                    url: "/data-service/data_track/query_init/",
+                    type: "post",
+
+                    success: function (res) {
+                        // 解析接收到的数组
+                        update_selects(res)
+                        // 更新下拉框选项
+
+                    },
+                })
+            }
+            // 下拉框改变后筛选数据
+            else if (message === "query"){
+                chart_p.style.visibility="visible"
+                var jtype_select = document.getElementById('id-select-jtype').selectedIndex
+                var serve_area_select = document.getElementById('id-select-serve_area').selectedIndex
+                var jid_select = document.getElementById('id-select-jid').selectedIndex
+                var jcomp_select = document.getElementById('id-select-jcomp').selectedIndex
+                var jpart_select = document.getElementById('id-select-jpart').selectedIndex
+                var detect_time_select = document.getElementById('id-select-detect_time').selectedIndex
+                var defect_type_select = document.getElementById('id-select-defect_type').selectedIndex
+                var location_type_select = document.getElementById('id-select-location_type').selectedIndex
+                var chart_div = document.getElementById('id-body-chart')
+                while (chart_div.firstChild) {
+                    chart_div.removeChild(chart_div.firstChild)
+                }
+                var option = {
+                            title: {
+                                text: [],
+                                textAlign: "auto",
+                                left: "center",
+                            },
+                            tooltip: {},
+                            legend: {
+                                data: [],  // 后台获取
+                                bottom: 0
+                            },
+                            xAxis: {
+                                data: []  // 后台获取
+                            },
+                            yAxis: {},
+                            series: []  // 后台获取
+                        };
+                $.ajax({
+                    url: "/data-service/data_track/query/",
+                    type: "post",
+                    data: {"jtype": jtype_select, "serve_area": serve_area_select, "jid": jid_select,
+                        "jcomp": jcomp_select, "jpart": jpart_select, "detect_time": detect_time_select,
+                        "defect_type": defect_type_select, "location_type": location_type_select},
+                    success: function (res) {
+                    // 解析接收到的res 并更新option
+                        console.log(res)
+                        var keys = Object.keys(res)
+                        var values = Object.values(res)
+                        for (i = 0; i < keys.length; i++) {
+                            tmp_div = document.createElement("div")
+                            tmp_div.id = "chart-"+i.toString()
+                            tmp_div.style = "width: 100%;height: 400px;"
+                            chart_div.appendChild(tmp_div)
+                            console.log(chart_div)
+                            var tmp_key = keys[i]
+                            var tmp_value = values[i]
+                            option.title.text = tmp_value.title
+                            option.legend.data = tmp_value.legend;
+                            option.xAxis.data = tmp_value.x_axis;
+                            option.series = [
+                                {
+                                    "name": tmp_value.tmp_key,
+                                    "type": "bar",
+                                    "data": tmp_value.series
+                                }
+                            ];
+                        var myChart = echarts.init(document.getElementById("chart-"+i.toString()))
+                        myChart.setOption(option);
+                        }
+                    },
+                })
+
+            }
+        }
+
+        function update_selects(response) {
+            var keys = Object.keys(response)
+            var values = Object.values(response)
+
+            for (i=0; i<keys.length; i++) {
+                var tmp_id = "id-select-" + keys[i]
+                var tmp_select = document.getElementById(tmp_id)
+                {#while (tmp_select.firstChild) {#}
+                {#    tmp_select.removeChild(tmp_select.firstChild);#}
+                {# }#}
+                for (j=0; j<values[i].length; j++) {
+                    var tmp_opt = document.createElement("option")
+                    tmp_opt.text = values[i][j]
+                    tmp_select.appendChild(tmp_opt)
+                }
+            }
+        }
+{##}
+{#        $(function () {#}
+{#            preview_template();#}
+{#        })#}
+{##}
+{#        function preview_template() {#}
+{#            $("#id_preview").click(function () {#}
+{#                var template_json_str = document.getElementById("id_template_item").value;#}
+{#                // 浅log一下#}
+{#                var display_place = document.getElementById("my_modal_content")#}
+{#                while (display_place.firstChild) {#}
+{#                    display_place.removeChild(display_place.firstChild);#}
+{#                }#}
+{#                console.log(template_json_str)#}
+{#                template_json = jQuery.parseJSON(template_json_str);#}
+{#                console.log(template_json)#}
+{#                var keys = Object.keys(template_json.content)#}
+{#                for (i = 0; i < template_json.num_key; i++) {#}
+{#                    // 当前条目#}
+{#                    var temp_item = template_json.content[keys[i]]#}
+{#                    var temp_label = document.createElement("label")#}
+{#                    temp_label.innerText = temp_item.name#}
+{#                    var ftype = temp_item.type#}
+{#                    if (ftype == 1) {#}
+{#                        // 基本input框#}
+{#                        var temp_input = document.createElement("input")#}
+{#                        var temp_div = document.createElement("div")#}
+{#                        temp_div.className = 'form-group'#}
+{#                        temp_input.className = "form-control"#}
+{#                        temp_input.id = "input" + i.toString()#}
+{#                        temp_input.name = "input" + i.toString()#}
+{#                        temp_div.appendChild(temp_input)#}
+{##}
+{#                    } else if (ftype == 2) {#}
+{#                        // 文选选择和上传#}
+{#                        var temp_div = document.createElement("div")#}
+{#                        var temp_input = document.createElement("input")#}
+{#                        temp_div.className = 'form-group'#}
+                        {#temp_input.className = "form-control"#}
+{#                        temp_input.type = "file"#}
+{#                        temp_input.id = "file_input" + i.toString()#}
+{#                        temp_input.name = "file_input" + i.toString()#}
+{#                        temp_div.appendChild(temp_input)#}
+{#                    }#}
+{#                    // 把当前child 加入到文档列表中#}
+{#                    display_place.appendChild(temp_label)#}
+{#                    display_place.appendChild(temp_div)#}
+{#                }#}
+{#                $("#myModal").modal("show")#}
+{##}
+{#            })#}
+{#        }#}
+{##}
+    </script>
+{% endblock %}

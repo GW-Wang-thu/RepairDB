@@ -1,0 +1,309 @@
+{% extends 'mainpage_template.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+
+            <div class="col-md-3">
+                <ul class="list-group">
+                    <li class="list-group-item" id="basic">基本资料</li>
+                    <li class="list-group-item" id="password">修改密码</li>
+                    <li class="list-group-item" id="rights">我的权限</li>
+                </ul>
+            </div>
+
+            <div class="col-md-9">
+
+                <div class="panel panel-default" id="panel2" hidden>
+                    <div class="panel-heading">
+                        <h3 class="panel-title" id="panel2_title"></h3>
+                    </div>
+                    <div class="panel-body" id="panel2_body">
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title" id="panel_title"> {# 动态更新 #} </h3>
+                    </div>
+                    <div class="panel-body" id="panel_body">
+                        <form method="post" novalidate id="form_main">
+                            <div class="clearfix" id="form_content">
+                                {# 表单动态生成 #}
+                            </div>
+                            <button id="btn_submit" type="button" class="btn btn-primary">提交修改</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        $(function () {
+            click_basic_event();
+            click_password_event();
+            click_rights_event();
+            $("#btn_submit").click(button_click_func)
+            $("#basic").click()
+        })
+
+        function click_basic_event() {
+            $("#basic").click(function () {
+                $("#panel2").hide()
+                $("#panel_title").text("基本资料")
+                $("#btn_submit").text("修改资料")
+                // 浅log一下
+                console.log("basic clicked")
+                // 获取表单，动态生成内容，并清空所有原有值
+                var form_disp = document.getElementById("form_content")
+                while (form_disp.firstChild) {
+                    form_disp.removeChild(form_disp.firstChild)
+                }
+
+                $.ajax({
+                    url: "/profile/basic/",
+                    type: "GET",
+                    data: "",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            var html_string = res.basic_form
+                            var parser = new DOMParser();
+                            var void_form = parser.parseFromString(html_string, 'text/html').body;
+                            console.log(void_form)
+                            while (void_form.firstElementChild) {
+                                temp_div = document.createElement("div")
+                                temp_div.className = "col-xs-6"
+                                temp_sub_div = document.createElement("div")
+                                temp_sub_div.className = "form-group"
+                                temp_sub_div.style = "position: relative; margin-bottom: 20px;"
+                                temp_error_span = document.createElement("span")
+                                temp_error_span.className = "error-msg"
+                                temp_error_span.style = "color: red;position: absolute;"
+                                temp_sub_div.appendChild(void_form.firstChild)
+                                temp_sub_div.appendChild(void_form.firstChild)
+                                temp_sub_div.appendChild(temp_error_span)
+                                form_disp.appendChild(temp_div.appendChild(temp_sub_div))
+                            }
+                            {#var submit_div =  document.createElement("div")#}
+                            {#submit_div.className = "col-xs-12"#}
+                            {#var submit_button = document.createElement("button")#}
+                            {#submit_button.id = "basic_submit"#}
+                            {#submit_button.className = "btn btn-primary"#}
+                            {#submit_button.innerText = "提交修改"#}
+                            {#submit_button.type = "button"#}
+                            {#form_disp.appendChild(submit_div.appendChild(submit_button))#}
+                        }
+                    }
+                })
+            })
+        }
+
+        function click_password_event() {
+            $("#password").click(function () {
+
+                $("#panel2").hide()
+                $("#panel_title").text("修改密码")
+                $("#btn_submit").text("修改密码")
+                // 浅log一下
+                console.log("password clicked")
+                // 获取表单，动态生成内容，并清空所有原有值
+                var form_disp = document.getElementById("form_content")
+                while (form_disp.firstChild) {
+                    form_disp.removeChild(form_disp.firstChild)
+                }
+
+                $.ajax({
+                    url: "/profile/password/",
+                    type: "GET",
+                    data: "",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            var html_string = res.basic_form
+                            var parser = new DOMParser();
+                            var void_form = parser.parseFromString(html_string, 'text/html').body;
+                            console.log(void_form)
+                            while (void_form.firstElementChild) {
+                                temp_div = document.createElement("div")
+                                temp_div.className = "col-xs-6"
+                                temp_sub_div = document.createElement("div")
+                                temp_sub_div.className = "form-group"
+                                temp_sub_div.style = "position: relative; margin-bottom: 20px;"
+                                temp_error_span = document.createElement("span")
+                                temp_error_span.className = "error-msg"
+                                temp_error_span.style = "color: red;position: absolute;"
+                                temp_sub_div.appendChild(void_form.firstChild)
+                                temp_sub_div.appendChild(void_form.firstChild)
+                                temp_sub_div.appendChild(temp_error_span)
+                                form_disp.appendChild(temp_div.appendChild(temp_sub_div))
+                            }
+                        }
+                    }
+                })
+            })
+        }
+
+        function click_rights_event() {
+            var rights_list = [
+                "基本游客权限", "检测数据创建", "修复数据创建", "检测数据审核", "修理数据审核", "检测数据模板创建", "修复数据模板创建",
+                "检测数据模板审核", "修复数据模板审核", "检测数据访问", "修复数据访问", "外联模块审核", "外联模块访问", "权限申请的审批"
+            ]
+
+            $("#rights").click(function () {
+                $("#btn_submit").tagName = "rights/"
+                $("#panel2").show()
+                $("#panel2_title").text("我的权限")
+                var panel2_body = document.getElementById("panel2_body")
+                var temp_ul = document.createElement("ul")
+                temp_ul.className = "list-group"
+
+                $("#panel_title").text("申请新权限")
+                $("#btn_submit").text("验证激活码")
+                // 浅log一下
+                console.log("rights clicked")
+                // 获取表单，动态生成内容，并清空所有原有值
+                var form_disp = document.getElementById("form_content")
+                while (form_disp.firstChild) {
+                    form_disp.removeChild(form_disp.firstChild)
+                }
+                while (panel2_body.firstChild) {
+                    panel2_body.removeChild(panel2_body.firstChild)
+                }
+
+                $.ajax({
+                    url: "/profile/rights/",
+                    type: "GET",
+                    data: "",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            var current_rights_string = res.current_rights.split(",")
+                            var current_rights = []
+                            current_rights_string.forEach(item => {
+                                current_rights.push(+item);
+                            });
+
+                            var container_div = document.createElement("div")
+
+                            for (i = 0; i < rights_list.length; i++) {
+                                temp_div = document.createElement("div")
+                                temp_div.className = "checkbox"
+                                temp_label = document.createElement("label")
+                                temp_input = document.createElement("input")
+                                temp_input.type = "checkbox"
+                                temp_input.name = "right_"+i.toString()
+                                temp_input.id = "right_"+i.toString()
+                                if (current_rights.indexOf(i) != -1) {
+                                    // 设置不可重复申请
+                                    temp_input.checked = true
+                                    temp_input.disabled = true
+                                    // 添加到面板1
+                                    temp_li = document.createElement("li")
+                                    temp_li.className = "list-group-item"
+                                    temp_li.append(rights_list[i])
+                                    temp_ul.appendChild(temp_li)
+                                } else {
+                                }
+                                temp_label.appendChild(temp_input)
+                                temp_label.append(rights_list[i])
+                                temp_div.appendChild(temp_label)
+                                container_div.appendChild(temp_div)
+                            }
+                            // 更新面板1显示我的已有权限
+                            panel2_body.appendChild(temp_ul)
+                            // 在面板2中显示控件更新新权限
+                            form_disp.appendChild(container_div)
+                            var submit_div = document.createElement("div")
+                            submit_div.className = "col-xs-12"
+                            var submit_button = document.createElement("button")
+                            submit_button.className = "btn btn-primary"
+                            submit_button.innerText = "申请新权限"
+                            submit_button.id = "checkbox_apply"
+                            submit_button.style = "position: relative; margin-bottom: 20px;"
+                            submit_button.type = "button"
+                            submit_button.onclick=button_click_func
+
+                            // 读取bootstrap表单控件
+                            var html_string = res.basic_form
+                            var parser = new DOMParser();
+                            var void_form = parser.parseFromString(html_string, 'text/html').body;
+
+                            {#console.log(void_form)#}
+                            var i = 0
+                            while (void_form.firstElementChild) {
+                                temp_div = document.createElement("div")
+                                temp_div.className = "col-xs-6"
+                                temp_sub_div = document.createElement("div")
+                                temp_sub_div.className = "form-group"
+                                temp_sub_div.style = "position: relative; margin-bottom: 20px;"
+                                temp_error_span = document.createElement("span")
+                                temp_error_span.className = "error-msg"
+                                temp_error_span.style = "color: red;position: absolute;"
+                                temp_sub_div.appendChild(void_form.firstElementChild)
+                                temp_sub_div.appendChild(void_form.firstElementChild)
+                                temp_sub_div.appendChild(temp_error_span)
+                                form_disp.appendChild(temp_div.appendChild(temp_sub_div))
+                                if (i==0){
+                                    form_disp.appendChild(submit_div.appendChild(submit_button))
+                                }
+                                i += 1
+                            }
+                        }
+                    }
+                })
+
+            })
+        }
+
+
+        function button_click_func() {
+                // 浅log一下
+                console.log($("#form_main").serialize())
+                // 清空错误提示
+                $(".error-msg").empty();
+                if ($("#btn_submit").text()=="修改资料"){
+                    temp_url = "/profile/basic/"
+                }
+                else if ($("#btn_submit").text()=="修改密码"){
+                    temp_url = "/profile/password/"
+                }
+                else if ($("#btn_submit").text()=="验证激活码"){
+                    temp_url = "/profile/rights/"
+                }
+                console.log("submit clicked " + temp_url)
+                // 向后端发送数据
+                $.ajax({
+                    url: temp_url,
+                    type: "POST",
+                    data: $("#form_main").serialize(),
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            alert("修改成功");
+                            // 用JS实现页面的刷新
+                            location.reload();
+                        } else {
+                            console.log(res.errors)
+                            $.each(res.errors, function (name, data) {
+                                 console.log(name,data);
+                                $("#id_" + name).next().text(data[0]);
+                            })
+                        }
+                    }
+                })
+            }
+
+    </script>
+
+{% endblock %}

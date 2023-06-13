@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JF-DB|登录</title>
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-3.4.1/css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/font-awesome-4.7.0/css/font-awesome.css' %}">
+    <style>
+        .login_block {
+            width: 400px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            box-shadow: 5px 5px 20px #aaa;
+
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 100px;
+            padding: 20px 40px;
+        }
+
+    </style>
+
+</head>
+<body>
+<div class="login_block">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div>
+            <label>
+{#                <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>#}
+                用户名：
+            </label>
+            {{ form.username }}
+            <span style="color: red;">{{ form.username.errors.0 }}</span>
+        </div>
+
+        <div>
+            <label>
+                密码：
+            </label>
+            {{ form.passwd }}
+            <span style="color: red;">{{ form.passwd.errors.0 }}</span>
+        </div>
+
+        <div class="form-group">
+            <label for="id_code">验证码</label>
+            <div class="row">
+                <div class="col-xs-7">
+                    {{ form.img_code }}
+                    <span style="color: red;">{{ form.img_code.errors.0 }}</span>
+                </div>
+                <div class="col-xs-5">
+                    <img id="image_code" src="/img_code/" style="width: 125px;">
+                </div>
+            </div>
+        </div>
+        <div style="align-content: center">
+            <input type="submit" value="登 录" class="btn btn-primary">
+        </div>
+    </form>
+
+    <div style="margin-top: 20px">
+        <a href="/register/"> 注册账号 </a>
+        <a href="" style="float: right"> 找回密码 </a>
+    </div>
+</div>
+
+<script src="{% static 'js/jquery-3.6.1.min.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-3.4.1/js/bootstrap.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+{% extends 'datasubmit_template.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {#选择数据类型-损伤、修复、模拟的下拉框#}
+                    {% for field in record_form %}
+                        <div class="form-group">
+                            <label>{{ field.label }}</label>
+                            {{ field }}
+                            <span style="color: red;">{{ field.errors.0 }}</span>
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">提交</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{##}
+{% block js %}
+    <script type="text/javascript">
+    $(function (){
+        $('#id_start_date').datepicker(
+            {
+                format: 'yyyy-mm-dd',
+                language: "zh-CN",
+                autoclose: true
+            }
+        )
+        var li1 = document.getElementById("create-li-1")
+        var li2 = document.getElementById("create-li-2")
+        li1.innerHTML='<a href="/create-jet/new/">录入新战机</a>'
+        li2.innerHTML='<a href="/create-record/new/">录入维护记录</a>'
+    })
+{##}
+{#        $(function () {#}
+{#            preview_template();#}
+{#        })#}
+{##}
+{#        function preview_template() {#}
+{#            $("#id_preview").click(function () {#}
+{#                var template_json_str = document.getElementById("id_template_item").value;#}
+{#                // 浅log一下#}
+{#                var display_place = document.getElementById("my_modal_content")#}
+{#                while (display_place.firstChild) {#}
+{#                    display_place.removeChild(display_place.firstChild);#}
+{#                }#}
+{#                console.log(template_json_str)#}
+{#                template_json = jQuery.parseJSON(template_json_str);#}
+{#                console.log(template_json)#}
+{#                var keys = Object.keys(template_json.content)#}
+{#                for (i = 0; i < template_json.num_key; i++) {#}
+{#                    // 当前条目#}
+{#                    var temp_item = template_json.content[keys[i]]#}
+{#                    var temp_label = document.createElement("label")#}
+{#                    temp_label.innerText = temp_item.name#}
+{#                    var ftype = temp_item.type#}
+{#                    if (ftype == 1) {#}
+{#                        // 基本input框#}
+{#                        var temp_input = document.createElement("input")#}
+{#                        var temp_div = document.createElement("div")#}
+{#                        temp_div.className = 'form-group'#}
+{#                        temp_input.className = "form-control"#}
+{#                        temp_input.id = "input" + i.toString()#}
+{#                        temp_input.name = "input" + i.toString()#}
+{#                        temp_div.appendChild(temp_input)#}
+{##}
+{#                    } else if (ftype == 2) {#}
+{#                        // 文选选择和上传#}
+{#                        var temp_div = document.createElement("div")#}
+{#                        var temp_input = document.createElement("input")#}
+{#                        temp_div.className = 'form-group'#}
+                        {#temp_input.className = "form-control"#}
+{#                        temp_input.type = "file"#}
+{#                        temp_input.id = "file_input" + i.toString()#}
+{#                        temp_input.name = "file_input" + i.toString()#}
+{#                        temp_div.appendChild(temp_input)#}
+{#                    }#}
+{#                    // 把当前child 加入到文档列表中#}
+{#                    display_place.appendChild(temp_label)#}
+{#                    display_place.appendChild(temp_div)#}
+{#                }#}
+{#                $("#myModal").modal("show")#}
+{##}
+{#            })#}
+{#        }#}
+{##}
+    </script>
+{% endblock %}

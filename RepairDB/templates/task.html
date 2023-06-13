@@ -1,0 +1,384 @@
+{% extends 'mainpage_template.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+
+            <div class="col-md-3">
+                <ul class="list-group">
+                    <li class="list-group-item" id="my_application">我申请的</li>
+                    <li class="list-group-item" id="my_authority">待处理的</li>
+                </ul>
+            </div>
+
+            <div class="col-md-9">
+
+                <div class="panel panel-default" id="panel2" hidden>
+                    <div class="panel-heading">
+                        <h3 class="panel-title" id="panel2_title"></h3>
+                    </div>
+                    <div class="panel-body" id="panel2_body">
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title" id="panel_title"> {# 动态更新 #} </h3>
+                    </div>
+                    <div class="panel-body" id="panel_body">
+                        <div class="clearfix" id="table_content">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>#id</th>
+                                    <th>任务类型</th>
+                                    <th>任务标题</th>
+                                    <th id="creator_head">创建者</th>
+                                    <th>创建时间</th>
+                                    <th>任务状态</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody id="table_body">
+                                {# 逐条动态生成 #}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        $(function () {
+            click_mapply_event();
+            click_mauth_event();
+            $("#my_application").click()
+        })
+
+        function click_mapply_event() {
+            $("#my_application").click(function () {
+                $("#panel_title").text("我提交的任务")
+                $("#creator_head").hide()
+                // 浅log一下
+                console.log("application clicked")
+                // 获取表单，动态生成内容，并清空所有原有值
+                while (table_body.firstChild) {
+                    table_body.removeChild(table_body.firstChild)
+                }
+                var task_types = ["数据上传", "数据审核", "用户权限申请", "用户权限审核", "数据模板创建申请", "数据模板审核",
+                    "数据使用申请", "数据使用审核", "外联模块创建申请", "外联模块创建审核", "外联模块使用申请", "外联模块使用审核"]
+                var task_status = ["处理中", "审批通过", "申请被驳回", "用户撤销申请", "待提交", "超时未处理驳回"]
+
+                $.ajax({
+                    url: "/tasks/my_application/",
+                    type: "GET",
+                    data: "",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            var items = res.tabel_item
+                            console.log(items)
+                            var keys = Object.keys(items)
+                            for (i = 0; i < keys.length; i++) {
+                                temp_line = items[keys[i]]
+                                var temp_tr = document.createElement("tr")
+                                var temp_th = document.createElement("th")
+                                temp_th.innerText = i + 1
+                                temp_tr.appendChild(temp_th)
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = task_types[temp_line.type]
+                                temp_tr.appendChild(temp_td)
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = temp_line.title
+                                temp_tr.appendChild(temp_td)
+                                {#var temp_td = document.createElement("td")#}
+                                {#temp_td.innerText = temp_line.applier#}
+                                {#temp_tr.appendChild(temp_td)#}
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = temp_line.create_time
+                                temp_tr.appendChild(temp_td)
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = task_status[temp_line.status]
+                                temp_tr.appendChild(temp_td)
+                                var temp_td = document.createElement("td")
+                                var temp_button = document.createElement("button")
+                                temp_button.className = "btn btn-primary"
+                                temp_button.innerText = "查看详情"
+                                temp_button.onclick = function () {
+
+                                    $.ajax({
+                                        url: "/task/detail/",
+                                        type: "GET",
+                                        data: {"taskid": temp_line.id},
+                                        dataType: "JSON",
+                                        success: function (res_in) {
+                                            console.log(res_in),
+                                            $("#myModal").modal("show")
+                                        }
+                                    })
+                                }
+                                temp_td.appendChild(temp_button)
+                                temp_tr.appendChild(temp_td)
+                                table_body.appendChild(temp_tr)
+                            }
+                        }
+                    }
+                })
+            })
+        }
+
+        function click_mauth_event() {
+            $("#my_authority").click(function () {
+
+                $("#panel_title").text("我处理的任务")
+                $("#creator_head").show()
+                // 浅log一下
+                console.log("authority clicked")
+                // 获取表单，动态生成内容，并清空所有原有值
+                var table_body = document.getElementById("table_body")
+                while (table_body.firstChild) {
+                    table_body.removeChild(table_body.firstChild)
+                }
+                var task_types = ["数据上传", "数据审核", "用户权限申请", "用户权限审核", "数据模板创建申请", "数据模板审核",
+                    "数据使用申请", "数据使用审核", "外联模块创建申请", "外联模块创建审核", "外联模块使用申请", "外联模块使用审核"]
+                var task_status = ["处理中", "审批通过", "申请被驳回", "用户撤销申请", "待提交", "超时未处理驳回"]
+
+                $.ajax({
+                    url: "/tasks/my_authority/",
+                    type: "GET",
+                    data: "",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            var items = res.tabel_item
+                            var keys = Object.keys(items)
+                            for (i = 0; i < keys.length; i++) {
+                                temp_line = items[keys[i]]
+                                console.log(temp_line)
+                                var temp_tr = document.createElement("tr")
+                                var temp_th = document.createElement("th")
+                                temp_th.innerText = i + 1
+                                temp_tr.appendChild(temp_th)
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = task_types[temp_line.type]
+                                temp_tr.appendChild(temp_td)
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = temp_line.title
+                                temp_tr.appendChild(temp_td)
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = temp_line.applier
+                                temp_tr.appendChild(temp_td)
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = temp_line.create_time
+                                temp_tr.appendChild(temp_td)
+                                var temp_td = document.createElement("td")
+                                temp_td.innerText = task_status[temp_line.status]
+                                temp_tr.appendChild(temp_td)
+                                var temp_td = document.createElement("td")
+                                var temp_button = document.createElement("button")
+                                temp_button.className = "btn btn-primary"
+                                temp_button.innerText = "查看详情"
+                                temp_button.onclick = function () {
+                                    $.ajax({
+                                        url: "/task/detail/",
+                                        type: "GET",
+                                        data: temp_line.id,
+                                        dataType: "JSON",
+                                        success: function (res_in) {
+                                            alert("get_details")
+                                        }
+                                    })
+                                }
+                                temp_td.appendChild(temp_button)
+                                temp_tr.appendChild(temp_td)
+                                table_body.appendChild(temp_tr)
+                            }
+                        }
+                    }
+                })
+            })
+        }
+
+        function click_rights_event() {
+            var rights_list = [
+                "基本游客权限", "检测数据创建", "修复数据创建", "检测数据审核", "修理数据审核", "检测数据模板创建", "修复数据模板创建",
+                "检测数据模板审核", "修复数据模板审核", "检测数据访问", "修复数据访问", "外联模块审核", "外联模块访问", "权限申请的审批"
+            ]
+
+            $("#rights").click(function () {
+                $("#btn_submit").tagName = "rights/"
+                $("#panel2").show()
+                $("#panel2_title").text("我的权限")
+                var panel2_body = document.getElementById("panel2_body")
+                var temp_ul = document.createElement("ul")
+                temp_ul.className = "list-group"
+
+                $("#panel_title").text("申请新权限")
+                $("#btn_submit").text("验证激活码")
+                // 浅log一下
+                console.log("rights clicked")
+                // 获取表单，动态生成内容，并清空所有原有值
+                var form_disp = document.getElementById("form_content")
+                while (form_disp.firstChild) {
+                    form_disp.removeChild(form_disp.firstChild)
+                }
+                while (panel2_body.firstChild) {
+                    panel2_body.removeChild(panel2_body.firstChild)
+                }
+
+                $.ajax({
+                    url: "/profile/rights/",
+                    type: "GET",
+                    data: "",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            var current_rights_string = res.current_rights.split(",")
+                            var current_rights = []
+                            current_rights_string.forEach(item => {
+                                current_rights.push(+item);
+                            });
+
+                            var container_div = document.createElement("div")
+
+                            for (i = 0; i < rights_list.length; i++) {
+                                temp_div = document.createElement("div")
+                                temp_div.className = "checkbox"
+                                temp_label = document.createElement("label")
+                                temp_input = document.createElement("input")
+                                temp_input.type = "checkbox"
+                                temp_input.name = "right_" + i.toString()
+                                temp_input.id = "right_" + i.toString()
+                                if (current_rights.indexOf(i) != -1) {
+                                    // 设置不可重复申请
+                                    temp_input.checked = true
+                                    temp_input.disabled = true
+                                    // 添加到面板1
+                                    temp_li = document.createElement("li")
+                                    temp_li.className = "list-group-item"
+                                    temp_li.append(rights_list[i])
+                                    temp_ul.appendChild(temp_li)
+                                } else {
+                                }
+                                temp_label.appendChild(temp_input)
+                                temp_label.append(rights_list[i])
+                                temp_div.appendChild(temp_label)
+                                container_div.appendChild(temp_div)
+                            }
+                            // 更新面板1显示我的已有权限
+                            panel2_body.appendChild(temp_ul)
+                            // 在面板2中显示控件更新新权限
+                            form_disp.appendChild(container_div)
+                            var submit_div = document.createElement("div")
+                            submit_div.className = "col-xs-12"
+                            var submit_button = document.createElement("button")
+                            submit_button.className = "btn btn-primary"
+                            submit_button.innerText = "申请新权限"
+                            submit_button.id = "checkbox_apply"
+                            submit_button.style = "position: relative; margin-bottom: 20px;"
+                            submit_button.type = "button"
+                            submit_button.onclick = button_click_func
+
+                            // 读取bootstrap表单控件
+                            var html_string = res.basic_form
+                            var parser = new DOMParser();
+                            var void_form = parser.parseFromString(html_string, 'text/html').body;
+
+                            {#console.log(void_form)#}
+                            var i = 0
+                            while (void_form.firstElementChild) {
+                                temp_div = document.createElement("div")
+                                temp_div.className = "col-xs-6"
+                                temp_sub_div = document.createElement("div")
+                                temp_sub_div.className = "form-group"
+                                temp_sub_div.style = "position: relative; margin-bottom: 20px;"
+                                temp_error_span = document.createElement("span")
+                                temp_error_span.className = "error-msg"
+                                temp_error_span.style = "color: red;position: absolute;"
+                                temp_sub_div.appendChild(void_form.firstElementChild)
+                                temp_sub_div.appendChild(void_form.firstElementChild)
+                                temp_sub_div.appendChild(temp_error_span)
+                                form_disp.appendChild(temp_div.appendChild(temp_sub_div))
+                                if (i == 0) {
+                                    form_disp.appendChild(submit_div.appendChild(submit_button))
+                                }
+                                i += 1
+                            }
+                        }
+                    }
+                })
+
+            })
+        }
+
+
+        function button_click_func() {
+            // 浅log一下
+            console.log($("#form_main").serialize())
+            // 清空错误提示
+            $(".error-msg").empty();
+            if ($("#btn_submit").text() == "修改资料") {
+                temp_url = "/profile/basic/"
+            } else if ($("#btn_submit").text() == "修改密码") {
+                temp_url = "/profile/password/"
+            } else if ($("#btn_submit").text() == "验证激活码") {
+                temp_url = "/profile/rights/"
+            }
+            console.log("submit clicked " + temp_url)
+            // 向后端发送数据
+            $.ajax({
+                url: temp_url,
+                type: "POST",
+                data: $("#form_main").serialize(),
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        alert("修改成功");
+                        // 用JS实现页面的刷新
+                        location.reload();
+                    } else {
+                        console.log(res.errors)
+                        $.each(res.errors, function (name, data) {
+                            console.log(name, data);
+                            $("#id_" + name).next().text(data[0]);
+                        })
+                    }
+                }
+            })
+        }
+
+
+    </script>
+
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'datasubmit_template.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                 <form method="post" novalidate>
+                      <div class="form-group">
+                            <label>仿真对象</label>
+                            <select name="structure_object" class="form-control" required="" id="id_structure_object">
+                              <option value="" selected="">所有结构</option>
+                              <option value="0">层合板</option>
+                              <option value="1">蜂窝结构</option>
+                              <option value="2">加筋结构</option>
+                              <option value="3">吸波复结构</option>
+                            </select>
+                      </div>
+                      <div class="form-group">
+                            <label>结构类型</label>
+                            <select name="structure_type" class="form-control" required="" id="id_structure_type">
+                              <option value="" selected="">所有类型</option>
+                              <option value="0">完好结构</option>
+                              <option value="1">贴补/挖补修复结构</option>
+                              <option value="2">螺栓修复结构</option>
+                              <option value="3">预置缺陷结构</option>
+                            </select>
+                      </div>
+                      <div class="form-group">
+                            <label>结构类型</label>
+                            <select name="simulation_software" class="form-control" required="" id="id_simulation_software">
+                              <option value="" selected="">不限</option>
+                              <option value="0">Abaqus</option>
+                              <option value="1">Adams</option>
+                              <option value="2">Fluent</option>
+                              <option value="3">COMSOL</option>
+                            </select>
+                      </div>
+                      <div class="form-group">
+                            <label>载荷类型</label>
+                            <select name="load_type" class="form-control" required="" id="id_load_type">
+                              <option value="" selected="">所有类型</option>
+                              <option value="0">单拉（典型拉伸载荷）</option>
+                              <option value="1">单压（典型压缩载荷）</option>
+                              <option value="2">弯曲（三点弯、四点弯、面内静水压强等）</option>
+                              <option value="3">剪切（面内剪切）</option>
+                              <option value="4">低速冲击（落锤冲击损伤仿真）</option>
+                              <option value="5">高速冲击（高速冲击损伤仿真）</option>
+                              <option value="6">固化工艺仿真（固化热动力学仿真）</option>
+                              <option value="7">加工工艺仿真（钻孔、打磨、钉铆等工艺仿真）</option>
+                              <option value="8">混合型载荷（拉压弯扭剪等耦合，CAI模拟等）</option>
+                              <option value="9">功能结构仿真（电磁特性仿真等）</option>
+                              <option value="10">热仿真</option>
+                              <option value="11">其他</option>
+                            </select>
+                      </div>
+                    <button type="button" class="btn btn-primary" id="id-button-query">筛选</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel panel-default" id="id-panel-img">
+            <div class="panel-heading">仿真图谱</div>
+            <div class="panel-body" id="id-body-img">
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{##}
+{% block js %}
+    <script type="text/javascript">
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'}
+        });
+
+        $(function (){
+            query_event('init')
+            var submit_button = document.getElementById('id-button-query')
+            submit_button.onclick = query_event
+        })
+
+        function query_event(message) {
+            // log 一下
+            var structure_type = document.getElementById('id_structure_type').selectedIndex
+            var structure_object = document.getElementById('id_structure_object').selectedIndex
+            var simulation_software = document.getElementById('id_simulation_software').selectedIndex
+            var load_type = document.getElementById('id_load_type').selectedIndex
+
+            $.ajax({
+                url: "/data-service/simulation_map/",
+                type: "post",
+                data: {
+                    "structure_type": structure_type,
+                    "structure_object": structure_object,
+                    "simulation_software": simulation_software,
+                    "load_type": load_type
+                },
+                success: function (res) {
+                    // 更新损伤图谱
+                    {#console.log(res)#}
+                    var display = document.getElementById('id-body-img')
+                    while (display.firstChild) {
+                        display.removeChild(display.firstChild)
+                    }
+                    for (i=0; i<res.num_items; i++) {
+                        var tmp_img_title = res.fed_imgs[i].title
+                        var tmp_img_descrip = res.fed_imgs[i].description
+                        tmp_root = res.fed_imgs[i].imgdir
+                        var tmp_img_dir = '../../imgs/' + tmp_root
+                        var tmp_title_label = document.createElement('h3')
+                        var tmp_descrip_label = document.createElement('p')
+                        var tmp_img_html = document.createElement('img')
+                        var tmp_caption_div = document.createElement('div')
+                        var dmap_item_div = document.createElement('div')
+                        console.log(tmp_img_dir)
+                        tmp_caption_div.className = 'caption'
+                        tmp_title_label.innerText = tmp_img_title
+                        tmp_descrip_label.innerText = tmp_img_descrip
+                        tmp_caption_div.appendChild(tmp_title_label)
+                        tmp_caption_div.appendChild(tmp_descrip_label)
+                        tmp_img_html.src = tmp_img_dir
+                        tmp_img_html.className = "img-responsive"
+                        tmp_img_html.alt = "Responsive image"
+                        dmap_item_div.className = 'thumbnail'
+                        dmap_item_div.appendChild(tmp_img_html)
+                        dmap_item_div.appendChild(tmp_caption_div)
+                        display.appendChild(dmap_item_div)
+                    }
+                }
+            })
+        }
+
+    </script>
+{% endblock %}

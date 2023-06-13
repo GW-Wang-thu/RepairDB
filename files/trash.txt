@@ -1,0 +1,36 @@
+        // 工具函数：解析数据模板json文件到HTML文件
+        {#function Json2HTML(template_json, append_place) {#}
+        {#    console.log(template_json)#}
+        {#    var keys = Object.keys(template_json.content)#}
+        {#    for (i = 0; i < template_json.num_key; i++) {#}
+        {#        // 当前条目#}
+        {#        var temp_item = template_json.content[keys[i]]#}
+        {#        var temp_label = document.createElement("label")#}
+        {#        temp_label.innerText = temp_item.name#}
+        {#        var ftype = temp_item.type#}
+        {#        if (ftype == 1) {#}
+        {#            // 基本input框#}
+        {#            var temp_input = document.createElement("input")#}
+        {#            var temp_div = document.createElement("div")#}
+        {#            temp_div.className = 'form-group'#}
+        {#            temp_input.className = "form-control"#}
+        {#            temp_input.id = "input" + i.toString()#}
+        {#            temp_input.name = "input" + i.toString()#}
+        {#            temp_div.appendChild(temp_input)#}
+        {# #}
+        {#        } else if (ftype == 2) {#}
+        {#            // 文选选择和上传#}
+        {#            var temp_div = document.createElement("div")#}
+        {#            var temp_input = document.createElement("input")#}
+        {#            temp_div.className = 'form-group'#}
+                    {#temp_input.className = "form-control"#}
+        {#            temp_input.type = "file"#}
+        {#            temp_input.id = "file_input" + i.toString()#}
+        {#            temp_input.name = "file_input" + i.toString()#}
+        {#            temp_div.appendChild(temp_input)#}
+        {#        }#}
+        {#        // 把当前child 加入到文档列表中#}
+        {#        append_place.appendChild(temp_label)#}
+        {#        append_place.appendChild(temp_div)#}
+        {#    }#}
+        {# }#}

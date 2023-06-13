@@ -1,0 +1,87 @@
+{% extends 'mainpage_template.html' %}
+{% load static %}
+
+{% block content %}
+
+
+    <div style="margin-top: 0">
+        <img src="{% static "img/title.png" %}" height="230px">
+    </div>
+
+    <div style="margin-top: 50px; margin-left: 200px; margin-right: 150px">
+
+        <div class="col-md-4" style="height: 150px">
+            <button id="submit" class="btn btn-primary" type="button" style="height: 120px; width: 300px">
+                <h1 style="color: #c1d7e3"><a id="submita" href="/main/create-data/" style="color: #c1d7e3">数据创建</a>
+                </h1>
+            </button>
+        </div>
+
+        <div class="col-md-4" style="height: 150px">
+            <button id="service" class="btn btn-primary" type="button" style="height: 120px; width: 300px">
+                <h1 style="color: #c1d7e3"><a id="servicea" href="/main/data-service/" style="color: #c1d7e3">数据服务</a>
+                </h1>
+            </button>
+        </div>
+
+        <div class="col-md-4" style="height: 150px">
+            <button id="application" class="btn btn-primary" type="button" style="height: 120px; width: 300px">
+                <h1 style="color: #c1d7e3"><a id="applicationa" href="/main/data-application/" style="color: #c1d7e3">应用案例</a>
+                </h1>
+            </button>
+        </div>
+
+    </div>
+
+    <div>
+
+        <div class="col-md-12" style="padding-right: 120px">
+            <h4 id="childHeader" style="color: #4e98e4;">数据创建{{ form.choice }}</h4>
+        </div>
+
+    </div>
+
+    <div>
+        <hr style="height: 1px;width: 100%;background: #aaa;margin: 0px;">
+    </div>
+
+    <div style="margin-top: 50px; margin-left: 300px; margin-right: 250px">
+
+        <div class="col-md-4" style="height: 120px">
+            <button class="btn btn-primary" type="submit" style="height: 120px; width: 300px"
+                    href="/create-data/ndt_data_submmit/">
+                <h2 style="color: #c1d7e3">
+                    <a href="/create-data/new/" target="_blank" style="color: #c1d7e3">
+                        创建数据
+                    </a>
+                </h2>
+            </button>
+        </div>
+
+        <div class="col-md-4" style="height: 120px">
+            <button class="btn btn-primary" type="submit" style="height: 120px; width: 300px"
+                    href="/create-data/rep_date_submit/">
+                <h2 style="color: #c1d7e3">
+                    <a href="/create-template/new/" target="_blank" style="color: #c1d7e3">
+                        创建模板
+                    </a>
+                </h2>
+            </button>
+        </div>
+
+        <div class="col-md-4" style="height: 120px">
+            <button class="btn btn-primary" type="submit" style="height: 120px; width: 300px"
+                    href="/create-data/rep_date_submit/">
+                <h2 style="color: #c1d7e3">
+                    <a href="/create-record/new/" target="_blank" style="color: #c1d7e3">
+                        创建维护记录
+                    </a>
+                </h2>
+            </button>
+        </div>
+
+    </div>
+
+
+
+{% endblock %}

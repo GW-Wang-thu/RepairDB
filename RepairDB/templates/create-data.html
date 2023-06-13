@@ -1,0 +1,302 @@
+{% extends 'datasubmit_template.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form id="data_form" method="post" novalidate>
+                    {% csrf_token %}
+                    {#选择数据类型-损伤、修复、模拟的下拉框#}
+                    <div class="form-group">
+                        <label>{{ data_types.label }}</label>
+                        {{ data_types }}
+                        <span style="color: red;">{{ data_types.errors.0 }}</span>
+                    </div>
+
+                    {#选择通过网页还是文件提交#}
+                    <div class="btn-group" role="group" aria-label="..." style="margin: auto">
+                        <button type="button" class="btn btn-default" id="id_button_page">网页提交</button>
+                        <button type="button" class="btn btn-default" id="id_button_json">通过文件提交</button>
+                    </div>
+
+                    {#使用网页填写时，基本数据条目#}
+                    <div id="basic_content" class="form-group">
+
+                    </div>
+
+                    {#使用网页填写时，模板条目中的内容#}
+                    <div id="template_content" class="form-group">
+
+                    </div>
+
+                    {#下载后端生成的模板文件，用于用户批量化填写数据#}
+                    <div id="template_download" class="form-group">
+                        <label id="id_template_download" style="display: none">点击此处下载模板文件</label>
+                    </div>
+
+
+                    <button id="submit" type="button" class="btn btn-primary" style="display: none">提交审核</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        var temp_upload_mode = 0
+
+        $(function () {
+            var li1 = document.getElementById("create-li-1")
+            var li2 = document.getElementById("create-li-2")
+            li1.innerHTML='<a href="/create-data/new/">数据</a>'
+            li2.innerHTML='<a href="/create-template/new/">模板</a>'
+            data_type_select_change_event();    // 改变选择的数据类型、上传方式
+            submit_click_event();               // 提交数据
+            template_download_event()           // 选择数据模板
+        })
+
+        // 工具函数：删除所有孩子
+        function Delete_Child(obj_id) {
+            var display_place = document.getElementById(obj_id)
+            while (display_place.firstChild) {
+                display_place.removeChild(display_place.firstChild);
+            }
+        }
+
+        // 工具函数：给用户下载文件
+        const DownloadFile = (function () {
+            const a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            return function (data, fileName) {
+                const blob = new Blob([data], {type: "octet/stream"}),
+                    url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            };
+        }());
+
+        function data_type_select_change_event() {
+
+            // 0-从未选择；1-当前选定网页上传；2-当前选定文件上传
+
+            // 通过网页提交
+            $("#id_button_page").click(function () {
+                $("#submit").show()
+                $("#id_template_download").hide()
+                Delete_Child("template_content")
+                temp_upload_mode = 1
+                var selected_type = document.getElementById("id_data_type").value;
+                // 浅log一下
+                console.log(selected_type)
+                // 删除之前的选定项呈现的内容 -- basic data
+                var display_place_basic = document.getElementById("basic_content")
+                while (display_place_basic.firstChild) {
+                    display_place_basic.removeChild(display_place_basic.firstChild);
+                }
+                // 用ajax向后台发送请求，获取该template具体的用户条目，即json格式
+                if (selected_type != "") {
+                    $.ajax({
+                        url: "/create-data/select-type/",
+                        type: "get",
+                        data: {
+                            data_type: selected_type
+                        },
+
+                        success: function (res) {
+                            var basic_form = res.basic_form
+                            console.log("basic_form")
+                            display_place_basic.innerHTML = basic_form
+                            template_select_change_event();
+                        }
+                    })
+                }
+
+            });
+
+            // 通过文件提交
+            $("#id_button_json").click(function () {
+                    $("#submit").show()
+                    {#$("#id_template_download").show()#}
+                    // 删除数据模板之中的任何表格
+                    {#Delete_Child("template_content")#}
+                    temp_upload_mode = 2
+                    var selected_type = document.getElementById("id_data_type").value;
+                    var display_place_basic = document.getElementById("basic_content")
+                    Delete_Child("basic_content")
+                    // 用ajax向后台发送请求，获取该template具体的用户条目，即json格式
+                    if (selected_type !== "") {
+                        $.ajax({
+                            url: "/create-data/select-type/",
+                            type: "get",
+                            data: {
+                                data_type: selected_type
+                            },
+
+                            success: function (res) {
+                                var basic_form = res.basic_form
+                                var template_list = res.template_form
+                                console.log(basic_form)
+                                console.log(template_list)
+                                display_place_basic.innerHTML = basic_form
+                                var i = 1
+                                var children_length = display_place_basic.children.length
+                                while (i < children_length * 2 + 1) {
+                                    display_place_basic.removeChild(display_place_basic.firstChild);
+                                    i += 1;
+                                }
+
+                                // 文件上传
+                                var temp_div = document.createElement("div")
+                                var temp_input = document.createElement("input")
+                                temp_div.className = 'form-group'
+                                {#temp_input.className = "form-control"#}
+                                temp_input.type = "file"
+                                temp_input.id = "file_input"
+                                temp_input.name = "file_input"
+                                temp_div.appendChild(temp_input)
+                                display_place_basic.append(temp_div)
+                            }
+                        })
+                    }
+                }
+            )
+
+            // 下拉框内容改变
+            $("#id_data_type").change(function () {
+                if (temp_upload_mode == 1) {
+                    $("#id_button_page").click()
+                } else if (temp_upload_mode == 2) {
+                    $("#id_button_json").click()
+                }
+            });
+
+        }
+
+        function template_select_change_event() {
+
+            $("#id_data_template").change(function () {
+
+                    var temp_template_name = document.getElementById("id_data_template").value;
+                    var temp_data_type = document.getElementById("id_data_type").value;
+                    // 浅log一下
+                    console.log(temp_template_name)
+                    // 获取展示框，并清空所有原有值
+                    var display_place = document.getElementById("template_content")
+                    while (display_place.firstChild) {
+                        display_place.removeChild(display_place.firstChild);
+                    }
+
+                    // 用ajax向后台发送请求，获取该templage具体的用户条目，即json格式
+                    if (temp_template_name !== "") {
+                        $.ajax({
+                                url: "/create-data/select-template/",
+                                type: "get",
+                                data: {
+                                    template_idx: temp_template_name,
+                                    datatype_idx: temp_data_type
+                                },
+
+                                success: function (res) {
+                                    // 获取 description
+                                    var template_html = res.template
+                                    display_place.innerHTML = template_html
+                                }
+                            }
+                        )
+                    }
+                }
+            )
+        }
+
+        function submit_click_event() {
+
+            $("#submit").click(function () {
+                // 通过网页提交的
+                if (temp_upload_mode === 1) {
+                    var option = {
+                        url: '/create-data/submit-html/',
+                        type: 'POST',
+                        dataType: 'json',
+                        headers: {"ClientCallMode": "ajax"}, //添加请求头部
+                        enctype: "multipart/form-data",
+                        data: {"data_type": document.getElementById("id_data_type").selectedIndex},
+                        success: function (res) {
+                            console.log("get response")
+                            if (res.status) {
+                                alert("提交成功!");
+                                console.log(res.basic_data)
+                                location.reload();
+                                {#var display_place_basic = document.getElementById("basic_content")#}
+                                {#var display_place_template = document.getElementById("template_content")#}
+                                {#display_place_basic.innerHTML = res.basic_data#}
+                                {#display_place_template.innerHTML = res.template_data#}
+                            } else {
+                                alert("提交失败!请检查数据格式。");
+                                $.each(res.errors, function (name, data) {
+                                    console.log(name, data);
+                                    $("#id_" + name).next().text(data[0]);
+                                })
+                            }
+                        },
+                    };
+                    $("#data_form").ajaxSubmit(option);
+                }
+
+                // 通过文件提交
+                if (temp_upload_mode === 2) {
+                    var option = {
+                        url: '/create-data/submit-json/',
+                        type: 'POST',
+                        dataType: 'json',
+                        headers: {"ClientCallMode": "ajax"}, //添加请求头部
+                        success: function (res) {
+                            console.log("get response")
+                            if (res.status) {
+                                alert("提交成功!");
+                                location.reload();
+                            } else {
+                                console.log(res.errors)
+                                $.each(res.errors, function (name, data) {
+                                    console.log(name, data);
+                                    $("#id_" + name).next().text(data[0]);
+                                })
+                            }
+                        },
+                    };
+                    $("#data_form").ajaxSubmit(option);
+                }
+                }
+            )
+        }
+
+        function template_download_event() {
+            $("#id_template_download").click(
+                function () {
+                    $.ajax({
+                            url: "/create-data/download-template/",
+                            type: "get",
+                            data: {
+                                datatype_idx: document.getElementById("id_data_type").value,
+                                template_idx: document.getElementById("id_data_template").value
+                            },
+
+                            success: function (res) {
+                                // 下载文件
+                                DownloadFile(res, "template.json")
+                            }
+                        }
+                    )
+                })
+        }
+
+    </script>
+{% endblock %}
